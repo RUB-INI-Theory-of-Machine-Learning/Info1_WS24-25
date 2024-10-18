@@ -1,0 +1,33 @@
+var x = 300;
+var y = 150;
+
+# Block Eigentschaften
+var block_size = 100;
+var outline = 1/10;
+
+while true do {
+	canvas.setFillColor(1,1,1);
+	canvas.clear();
+	
+	# Haupt Rechteck	
+	canvas.setFillColor(255/255, 255/255, 1/255);
+	canvas.fillRect(x, y, block_size, block_size);
+	
+	
+	
+	# Dreieck für die Schattierung 
+	canvas.setFillColor(240/255, 245/255, 0);
+	canvas.fillArea([[x + block_size , y], [x + block_size, y + block_size], [x, y + block_size]]);
+	
+	# Zweites Rechteck für den vollständingen Schatteriungseffekt
+	canvas.setFillColor(240/255, 240/255, 1/255, 230/255);
+	canvas.fillRect(x + (block_size * outline),
+					y + (block_size * outline),
+					block_size - (2 * outline * block_size),
+					block_size - (2 * outline * block_size)
+	   );	
+
+	
+	y = y + block_size;
+	wait(200);
+}
