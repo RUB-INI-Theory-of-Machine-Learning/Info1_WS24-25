@@ -1,0 +1,43 @@
+# We define the block size
+var block_size = 100;
+
+# We define the outline to be 1/10 of the block size
+var outline_size = block_size/10;
+
+# Starting position for the block
+var x = 100;
+var y = 100;
+
+# To create the illusion of falling, we run an inifinte loop
+# where we draw the block, wait, then change the y position
+# reset the canvas and start again.
+while true do {
+  # reset canvas
+	canvas.setFillColor(1,1,1);
+	canvas.clear();
+	
+	# draw the block
+	canvas.setFillColor(255/255,255/255,0, 1);
+	canvas.fillRect(x,y,block_size,block_size);
+
+	canvas.setFillColor(153/255,153/255,0, 1);
+	canvas.fillArea([
+						[x+block_size,y], 
+						[x, y+block_size], 
+						[x+block_size, y+ block_size]
+					]);
+
+	canvas.setFillColor(204/255,204/255,0, 1);
+	canvas.fillRect(
+		x+outline_size,
+		y+outline_size,
+		block_size-2*outline_size,
+		block_size-2*outline_size
+	);
+
+  # change the y position of the block
+	y = y + block_size;
+
+  # wait so we see something
+	wait(1000);
+}
