@@ -1,48 +1,74 @@
-# Define block size for a field of 10x20. 
-# We calculate the vertical and horizontal block size and take the minimum. 
-# This way we can guarantee, that the playfield is always completely visible. 
-var block_size = math.floor(math.min(canvas.height()/20, canvas.width()/10));
+# We define the block size
+var block_size = math.min(canvas.width() // 10, canvas.height() // 20);
 
-# We define the outline to be 1/8 of the block size
-var outline_size = block_size/8;
+# We define the outline to be 1/10 of the block size
+var outline_size = block_size/10;
 
-# A dictionary of dictionaries of arrays containing the RGB values for the colors. 
-# We will add more colors later
-var colors = {
-	"yellow": {
-		"base": [204, 204, 0],
-		"light": [255, 255, 0],
-		"dark": [153, 153, 0]
-		}
-	};
+var colors = {"o": { # yellow
+						"base": [204, 204, 0],
+						"light":[255, 255, 0],
+						"dark": [153, 153, 0]
+					  }
+		      };
 
-# This is the function that draws the block for us. It takes pos_x and pos_y as arguments. 
-# Both are in the unit of blocks, as the conversion to pixels happens in this function. 
-# The blocks get drawn as a square with light color, a triangle with darker color and a smaller square with base color on top of each other
+var tetrominos = {
+	"o": [
+		[
+			[0,0,0,0],
+			[0,"o", "o", 0],
+			[0,"o", "o", 0],
+			[0,0,0,0],
+		]
+	],
+	"i": [
+	[[],[],[],[]],
+	[[],[],[],[]]]
+
+};
+# Starting position for the block
+var x = 0;
+var y = 0;
+var rotation = 0;
+
+var playfield = [];
+
+
+for 0:20 do	playfield.push(Array(10,0));
+
+function insert_tetromino(playfield, column, row,  rotation, shape){
+	var tetromino = tetrominos[shape][rotation];
+	
+	for var i in 0:4 do 
+		for var j in 0:4 do 
+			if tetromino[i][j] != 0 then playfield[column + i][row + j] = tetromino[i][j];
+}
+
+# pos_x and pos_y are in units of blocks! Conversion to pixels happens internally. 
 function draw_block(pos_x, pos_y, color) {
 	pos_x = pos_x * block_size;
-	pos_y = pos_y * block_size;
+	pos_y *= block_size;
 	
-	# lighter edges
+	# draw the block
 	canvas.setFillColor(colors[color]["light"][0]/255, 
 						colors[color]["light"][1]/255, 
-						colors[color]["light"][2]/255);
+						colors[color]["light"][2]/255, 
+						1);
 	canvas.fillRect(pos_x, pos_y, block_size, block_size);
 
-	# triangle with dark color for the area bottom right
-	canvas.setFillColor(colors[color]["dark"][0]/255,
-						colors[color]["dark"][1]/255, 
-						colors[color]["dark"][2]/255);
+	canvas.setFillColor(colors[color]["dark"][0]/255, 
+					    colors[color]["dark"][1]/255, 
+					    colors[color]["dark"][2]/255, 
+					    1);
 	canvas.fillArea([
 						[pos_x + block_size, pos_y], 
-						[pos_x, pos_y + block_size], 
+						[pos_x, pos_y+block_size],
 						[pos_x + block_size, pos_y + block_size]
 					]);
 
-	# smaller square in the middle
-	canvas.setFillColor(colors[color]["base"][0] / 255, 
-						colors[color]["base"][1] / 255, 
-						colors[color]["base"][2]/255);
+	canvas.setFillColor(colors[color]["base"][0]/255, 
+				        colors[color]["base"][1]/255, 
+				        colors[color]["base"][2]/255, 
+				        1);
 	canvas.fillRect(
 		pos_x+outline_size,
 		pos_y+outline_size,
@@ -51,28 +77,22 @@ function draw_block(pos_x, pos_y, color) {
 	);
 }
 
-# Starting position for the block
-var x = 2;
-var y = 5;
-
 # To create the illusion of falling, we run an inifinte loop
 # where we draw the block, wait, then change the y position
 # reset the canvas and start again.
-while y < 20 do {
-	# reset canvas
-	canvas.setFillColor(1, 1, 1);
+while true do {
+  # reset canvas
+	canvas.setFillColor(0,0,0);
 	canvas.clear();
 	
-	# draw the square tetromino
-	draw_block(x,y, "yellow");
-	draw_block(x + 1,y, "yellow");
-	draw_block(x,y + 1, "yellow");
-	draw_block(x +1 ,y+1, "yellow");
+	insert_tetromino(playfield, x, y, rotation, "o");
 
+	for var column in 0:playfield.size() do
+		for var row in 0:playfield[0].size() do
+			if(playfield[column][row] != 0) then draw_block(column, row, playfield[column][row]);
+  # change the y position of the block
+	y += 1;
 
-  	# change the y position of the block
-	y = y + 1;
-
-    # wait so we see something
+  # wait so we see something
 	wait(1000);
 }
