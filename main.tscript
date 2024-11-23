@@ -1,46 +1,146 @@
 # We define the block size
-var block_size = math.min(canvas.width() // 10, canvas.height() // 20);
+var block_size = math.min(canvas.width() // 12, canvas.height() // 22);
 
 # We define the outline to be 1/10 of the block size
 var outline_size = block_size/10;
 
-var colors = {"o": { # yellow
-						"base": [204, 204, 0],
-						"light":[255, 255, 0],
-						"dark": [153, 153, 0]
-					  }
-		      };
+var colors = {
+		"f": {
+			"base": [119, 119, 119],
+			"light": [153, 153, 153],
+			"dark": [51, 51, 51],
+		},
+		"o": { # yellow
+			"base": [204, 204, 0],
+			"light": [255, 255, 0],
+			"dark": [153, 153, 0],
+		},
+		"t": { # violet
+			"base": [153, 0, 204],
+			"light": [204, 0, 255],
+			"dark": [102, 0, 153],
+		},
+		"s": {
+			"base": [0, 204, 0],
+			"light": [0, 255, 0],
+			"dark": [0, 153, 0],
+		},
+		"z": {
+			"base": [204, 0, 0],
+			"light": [255, 0, 0],
+			"dark": [153, 0, 0],
+		},
+		"j": {
+			"base": [0, 0, 204],
+			"light": [0, 0, 255],
+			"dark": [0, 0, 153],
+		},
+		"l": {
+			"base": [204, 102, 0],
+			"light": [255, 136, 0],
+			"dark": [153, 68, 0],
+		},
+		"i": {
+			"base": [0, 204, 204],
+			"light": [0, 255, 255],
+			"dark": [0, 153, 153],
+		},
+		"n": {
+			"base": [149, 149, 149],
+			"light": [183, 183, 183] ,
+			"dark": [81, 81, 81]
+		}
+	};
 
 var tetrominos = {
-	"o": [
-		[
-			[0,0,0,0],
-			[0,"o", "o", 0],
-			[0,"o", "o", 0],
-			[0,0,0,0],
-		]
-	],
-	"i": [
-	[[],[],[],[]],
-	[[],[],[],[]]]
-
+	"o": [[
+            [0,0,0,0],
+            [0,"o","o",0],
+            [0,"o","o",0],
+            [0,0,0,0],
+        ]],
+    "t":[
+            # The first rotation of the tetromino
+            [
+                [ 0,  0,  0, 0 ], # the first row
+                ["t","t","t",0 ], # the second row
+                [ 0, "t", 0, 0 ]  # the third row
+            ],
+            # The other three rotations
+            [[0,"t",0,0],["t","t",0,0],[0,"t",0,0]],
+            [[0,"t",0,0],["t","t","t",0],[0,0,0,0]],
+            [[0,"t",0,0],[0,"t","t",0],[0,"t",0,0]]
+        ],
+     "s":[
+            [[0,0,0,0],[0,"s","s",0],["s","s",0,0]],
+            [["s",0,0,0],["s","s",0,0],[0,"s",0,0]]
+        ],
+    "z":[
+            [[0,0,0,0],["z","z",0,0],[0,"z", "z",0]],
+            [[0,"z",0,0],["z","z",0,0],["z",0,0,0]]
+        ],
+    "j":[
+            [[0,0,0,0],["j","j","j",0],[0,0,"j",0]],
+            [[0,"j",0,0],[0,"j",0,0],["j","j",0,0]],
+            [["j",0,0,0],["j","j","j",0],[0,0,0,0]],
+            [[0,"j","j",0],[0,"j",0,0],[0,"j",0,0]]
+        ],
+    "l":[
+            [[0,0,0,0],["l","l","l",0],["l",0,0,0]],
+            [["l","l",0,0],[0,"l",0,0],[0,"l",0,0]],
+            [[0,0,"l",0],["l","l","l",0],[0,0,0,0]],
+            [[0,"l",0,0],[0,"l",0,0],[0,"l","l",0]]
+        ],
+    "i":[
+            [[0,0,0,0],[0,0,0,0],["i","i","i","i"],[0,0,0,0]],
+            [[0,"i",0,0],[0,"i",0,0],[0,"i",0,0],[0,"i",0,0]],
+        ]
 };
-# Starting position for the block
-var x = 0;
-var y = 0;
-var rotation = 0;
+
 
 var playfield = [];
+playfield.push(Array(12,"f"));
+for 0:20 do	playfield.push(Array(12,0));
 
+for var row in playfield do {
+	row[0] = "f";
+	row[11] = "f";
+}
 
-for 0:20 do	playfield.push(Array(10,0));
+playfield.push(Array(12,"f"));
 
-function insert_tetromino(playfield, column, row,  rotation, shape){
+class Tetromino{
+	public:
+		var row = 0;
+		var column = 3;
+		var rotation = 0; 
+		var shape;
+		
+		constructor(shape_){
+		
+		this.shape = shape_;
+		}
+}
+
+function insert_tetromino(playfield, row, column, rotation, shape){
 	var tetromino = tetrominos[shape][rotation];
 	
-	for var i in 0:4 do 
-		for var j in 0:4 do 
+	for var i in 0:tetromino.size() do 
+		for var j in 0:tetromino[0].size() do 
 			if tetromino[i][j] != 0 then playfield[column + i][row + j] = tetromino[i][j];
+}
+
+function check_collision(playfield, tetromino){
+	var bitmap = tetrominos[tetromino.shape][tetromino.rotation];
+	
+	for var row in 0:bitmap.size() do {
+		for var column in 0:bitmap[row].size() do {
+			if bitmap[row][column] != 0 then {
+				if playfield[row + tetromino.row][column + tetromino.column] != 0 then return true;
+			}
+		}
+	}
+	return false;
 }
 
 # pos_x and pos_y are in units of blocks! Conversion to pixels happens internally. 
@@ -77,22 +177,45 @@ function draw_block(pos_x, pos_y, color) {
 	);
 }
 
+function render(playfield, tetromino){
+	# reset canvas
+	canvas.setFillColor(0,0,0);
+	canvas.clear();
+
+	# render playfield
+	for var row in 0:playfield.size() do
+		for var column in 0:playfield[0].size() do
+			if(playfield[row][column] != 0) then draw_block(column, row, playfield[row][column]);
+
+	# render tetromino	
+	var bitmap = tetrominos[tetromino.shape][tetromino.rotation];	
+	for var row in 0:bitmap.size() do
+		for var column in 0:bitmap[0].size() do
+			if(bitmap[row][column] != 0) then draw_block(
+					column+tetromino.column, 
+					row+tetromino.row, 
+					bitmap[row][column]
+				);	
+}
+
 # To create the illusion of falling, we run an inifinte loop
 # where we draw the block, wait, then change the y position
 # reset the canvas and start again.
-while true do {
-  # reset canvas
-	canvas.setFillColor(0,0,0);
-	canvas.clear();
-	
-	insert_tetromino(playfield, x, y, rotation, "o");
+var tetromino = Tetromino("o");
 
-	for var column in 0:playfield.size() do
-		for var row in 0:playfield[0].size() do
-			if(playfield[column][row] != 0) then draw_block(column, row, playfield[column][row]);
-  # change the y position of the block
-	y += 1;
+while true do {
+	#insert_tetromino(playfield, x, y, rotation, "o");
+
+	render(playfield, tetromino);
+  	# change the y position of the block
+	tetromino.row += 1;
+	
+	if check_collision(playfield, tetromino) then {
+		tetromino.row -= 1;
+		break;
+	}
+	
 
   # wait so we see something
-	wait(1000);
+	wait(500);
 }
