@@ -1,0 +1,34 @@
+class Playfield {
+	public:
+		var bitmap = [];
+		
+		constructor(width, height){
+			this.bitmap.push(Array(width+2,"f"));
+			for 0:height do	this.bitmap.push(Array(width+2, 0));
+			
+			for var row in this.bitmap do {
+				row[0] = "f";
+				row[width+1] = "f";
+			}
+			
+			this.bitmap.push(Array(width+2,"f"));
+		}
+		
+		function insert_tetromino(tetromino){
+			for var i in 0:tetromino.bitmap().size() do 
+				for var j in 0:tetromino.bitmap()[0].size() do 
+					if tetromino.bitmap()[i][j] != 0 then this.bitmap[tetromino.row + i][tetromino.column + j] = tetromino.bitmap()[i][j];
+		}
+		
+		function check_collision(tetromino){	
+			for var row in 0:tetromino.bitmap().size() do {
+				for var column in 0:tetromino.bitmap()[row].size() do {
+					if tetromino.bitmap()[row][column] != 0 then {
+						if this.bitmap[row + tetromino.row][column + tetromino.column] != 0 then return true;
+					}
+				}
+			}
+			return false;
+}
+
+}

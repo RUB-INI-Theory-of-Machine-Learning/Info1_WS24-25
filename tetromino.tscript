@@ -1,0 +1,23 @@
+class Tetromino{
+	public:
+		var row = 0;
+		var column = 3;
+		var rotation = 0; 
+		var shape;
+		
+		constructor(shape_){
+			this.shape = shape_;
+		}
+		
+		function bitmap(){
+			return tetrominos[this.shape][this.rotation];
+		}
+		
+		function drop(){
+			this.row += 1;
+		}
+		
+		function undrop(){
+			this.row -= 1;
+		}
+}

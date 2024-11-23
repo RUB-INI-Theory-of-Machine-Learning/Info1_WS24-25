@@ -1,0 +1,20 @@
+class TetrominoPool{
+	public:
+		var pool = [];
+		
+		function get(){
+			if this.pool.size() == 0 then this.fill_pool();
+		
+			return this.pool.pop();	
+		}
+		
+		function fill_pool(){
+			var pool_ = ["o", "s", "z", "i", "j", "l", "t"];
+			
+			while pool_.size() > 0 do {
+				var rand_idx = Integer((math.random() * pool_.size()));
+				this.pool.push(pool_[rand_idx]);
+				pool_.remove(rand_idx);
+			}
+		}
+}
