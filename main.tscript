@@ -1,8 +1,8 @@
-include "Assets";
-include "Tetromino";
-include "Playfield";
-include "Renderer";
-include "TetrominoPool";
+include "assets";
+include "tetromino";
+include "playfield";
+include "renderer";
+include "tetromino_pool";
 
 # Initialize the necessary classes
 var playfield = Playfield(10,20);
@@ -10,21 +10,45 @@ var pool = TetrominoPool();
 var tetromino = Tetromino(pool.get());
 var renderer = Renderer();
 
-# To create the illusion of falling, we run an infinite loop
-while true do {
-	# render the state so we can see changes
-	renderer.render(playfield, tetromino);
+var gravity = 200;
+var previous_time = localtime();
+var just_spawned = true;
 
-  	# change the y position of the block
-	tetromino.drop();
+setEventHandler("timer", function(event){
+	if localtime() - previous_time > gravity then {
+		previous_time = localtime();
+		# render the state so we can see changes
+		renderer.render(playfield, tetromino);
 	
-	# check for collision, if true then undrop tetromino, insert and get new
+	  	# change the y position of the block
+		tetromino.drop();
+		
+		# check for collision, if true then undrop tetromino, insert and get new
+		if playfield.check_collision(tetromino) then {
+			if just_spawned then quitEventMode();
+			tetromino.undo();
+			playfield.insert_tetromino(tetromino);
+			tetromino = Tetromino(pool.get());
+			just_spawned = true;
+		}
+		else { # no collision just after spawning
+			just_spawned = false;
+		}
+	}
+});
+
+setEventHandler("canvas.keydown", function(event){
+	if event.key == "ArrowRight" then tetromino.move_right();
+	if event.key == "ArrowLeft" then tetromino.move_left();
+	if event.key == "ArrowUp" then tetromino.rotate_right();
+	if event.key == "ArrowDown" then tetromino.rotate_left();
+	
 	if playfield.check_collision(tetromino) then {
-		tetromino.undrop();
-		playfield.insert_tetromino(tetromino);
-		tetromino = Tetromino(pool.get());
+		tetromino.undo();
 	}
 	
-  	# speed of the game
-	wait(500);
-}
+	# render now, so we can see the rotated/moved tetromino instantly
+	renderer.render(playfield, tetromino);
+});
+
+enterEventMode();
