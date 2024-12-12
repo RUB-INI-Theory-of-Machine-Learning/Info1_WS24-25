@@ -91,3 +91,28 @@ colors = {
 			"dark": [81, 81, 81]
 		}
 	};
+
+var base_score_values = [0, 40, 100, 300, 1200];
+var level_gravity = [
+    887, 	#level 0
+    820,  	#level 1
+    753,	#level 2
+    686,	#level 3
+    619,	#level 4
+    552,	#level 5
+    469,	#level 6
+    368,	#level 7
+    285,	#level 8
+    184,	#level 9
+    167, 	#level 10
+    151,	#level 11
+    134,	#level 12
+    117,	#level 13
+    100,	#level 14
+    100,	#level 15
+    84,	 	#level 16
+    84,		#level 17
+    67,		#level 18
+    67,		#level 19
+    50,		#level 20
+];

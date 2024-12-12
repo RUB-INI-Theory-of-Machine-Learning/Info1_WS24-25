@@ -1,8 +1,8 @@
-include "assets";
-include "tetromino";
-include "playfield";
-include "renderer";
-include "tetromino_pool";
+include "Assets";
+include "Tetromino";
+include "Playfield";
+include "Renderer";
+include "TetrominoPool";
 
 # Initialize the necessary classes
 var playfield = Playfield(10,20);
@@ -10,26 +10,50 @@ var pool = TetrominoPool();
 var tetromino = Tetromino(pool.get());
 var renderer = Renderer();
 
-var gravity = 200;
+
+var level = 5;
+var lines = 0;
+var score = 0;
+
+
+var gravity = level_gravity[level];
 var previous_time = localtime();
 var just_spawned = true;
+var soft_drop_locked = false;
 
 setEventHandler("timer", function(event){
 	if localtime() - previous_time > gravity then {
 		previous_time = localtime();
 		# render the state so we can see changes
 		renderer.render(playfield, tetromino);
-	
+
 	  	# change the y position of the block
 		tetromino.drop();
-		
+
 		# check for collision, if true then undrop tetromino, insert and get new
 		if playfield.check_collision(tetromino) then {
+
 			if just_spawned then quitEventMode();
 			tetromino.undo();
 			playfield.insert_tetromino(tetromino);
+
+			var cleared_rows = playfield.remove_full_rows(tetromino.row);
+			if cleared_rows > 0 then {
+				lines += cleared_rows;
+				score = score + base_score_values[cleared_rows] * (level + 1);
+				if level <= level_gravity.size() and level < lines // 10 then level = lines // 10;
+				gravity = level_gravity[level];
+			}
+
+			soft_drop_locked = true;
+			gravity = level_gravity[level];
+
 			tetromino = Tetromino(pool.get());
 			just_spawned = true;
+
+			print(lines);
+			print(score);
+			print(level);
 		}
 		else { # no collision just after spawning
 			just_spawned = false;
@@ -42,13 +66,21 @@ setEventHandler("canvas.keydown", function(event){
 	if event.key == "ArrowLeft" then tetromino.move_left();
 	if event.key == "ArrowUp" then tetromino.rotate_right();
 	if event.key == "ArrowDown" then tetromino.rotate_left();
-	
+	if event.key == " " and not soft_drop_locked then gravity = 50;
+
 	if playfield.check_collision(tetromino) then {
 		tetromino.undo();
 	}
-	
+
 	# render now, so we can see the rotated/moved tetromino instantly
 	renderer.render(playfield, tetromino);
+});
+
+setEventHandler("canvas.keyup", function(event){
+	if event.key == " " then {
+		soft_drop_locked = false;
+		gravity = level_gravity[level];
+	}
 });
 
 enterEventMode();

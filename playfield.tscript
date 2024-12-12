@@ -29,6 +29,37 @@ class Playfield {
 				}
 			}
 			return false;
-}
+	}
+
+	function remove_full_rows(top_row){
+		var full_rows = [];
+
+		for var row in top_row:math.min(top_row+4,21) do {
+			var is_full = true;
+			for var column in 0:this.bitmap[row].size() do {
+				if this.bitmap[row][column] == 0 then {
+					is_full = false;
+					break;
+				}
+
+			}
+			if is_full then full_rows.push(row);
+
+		}
+
+		for var row_idx in full_rows do
+		{
+			this.bitmap.remove(row_idx);
+
+			var row = ["f"];
+			for 0:10 do row.push(0);
+			row.push("f");
+
+			this.bitmap.insert(1, row);
+		}
+
+
+		return full_rows.size();
+	}
 
 }
