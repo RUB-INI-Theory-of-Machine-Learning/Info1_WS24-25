@@ -24,15 +24,15 @@ var soft_drop_locked = false;
 setEventHandler("timer", function(event){
 	if localtime() - previous_time > gravity then {
 		previous_time = localtime();
+
 		# render the state so we can see changes
-		renderer.render(playfield, tetromino);
+		renderer.render(playfield, tetromino, pool.next());
 
 	  	# change the y position of the block
 		tetromino.drop();
 
 		# check for collision, if true then undrop tetromino, insert and get new
 		if playfield.check_collision(tetromino) then {
-
 			if just_spawned then quitEventMode();
 			tetromino.undo();
 			playfield.insert_tetromino(tetromino);
@@ -40,7 +40,7 @@ setEventHandler("timer", function(event){
 			var cleared_rows = playfield.remove_full_rows(tetromino.row);
 			if cleared_rows > 0 then {
 				lines += cleared_rows;
-				score = score + base_score_values[cleared_rows] * (level + 1);
+				score += base_score_values[cleared_rows] * (level + 1);
 				if level <= level_gravity.size() and level < lines // 10 then level = lines // 10;
 				gravity = level_gravity[level];
 			}
@@ -73,7 +73,7 @@ setEventHandler("canvas.keydown", function(event){
 	}
 
 	# render now, so we can see the rotated/moved tetromino instantly
-	renderer.render(playfield, tetromino);
+	renderer.render(playfield, tetromino, pool.next());
 });
 
 setEventHandler("canvas.keyup", function(event){

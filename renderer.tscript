@@ -2,37 +2,66 @@ class Renderer {
 	public:
 		var block_size = 0;
 		var outline_size = 0;
-		
+		var p_bitmap = [];
+		var sidebar_size = 7;
+
 		constructor(){
 			# We define the block size
-			this.block_size = math.min(canvas.width() // 12, canvas.height() // 22);
-			
+			this.block_size = math.min(canvas.width() // 12 + this.sidebar_size, canvas.height() // 22);
+
 			# We define the outline to be 1/10 of the block size
 			this.outline_size = this.block_size/10;
-		}
-	
-		function render(playfield, tetromino){
-			# reset canvas
+
+			this.p_bitmap = Array(22, Array(12, 0));
+
+			# init background
 			canvas.setFillColor(0,0,0);
 			canvas.clear();
-		
-			# render playfield
-			for var row in 0:playfield.bitmap.size() do
-				for var column in 0:playfield.bitmap[0].size() do
-					if(playfield.bitmap[row][column] != 0) then this.draw_block(column, row, playfield.bitmap[row][column]);
-		
-			# render tetromino	
-			#var bitmap = tetrominos[tetromino.shape][tetromino.rotation];	
-			for var row in 0:tetromino.bitmap().size() do
-				for var column in 0:tetromino.bitmap()[0].size() do
-					if(tetromino.bitmap()[row][column] != 0) then this.draw_block(
-							column+tetromino.column, 
-							row+tetromino.row, 
-							tetromino.bitmap()[row][column]
-						);	
 		}
-		# pos_x and pos_y are in units of blocks! Conversion to pixels happens internally. 
-		function draw_block(pos_x, pos_y, color) {
+
+		function render(playfield, tetromino, next_tetromino){
+
+			var bitmap_diff = [];
+
+			var bitmap_cache = deepcopy(playfield.bitmap);
+
+			playfield.insert_tetromino(tetromino);
+
+			for var row in 0:playfield.bitmap.size() do {
+				for var column in 0:playfield.bitmap[row].size() do {
+					if playfield.bitmap[row][column] != this.p_bitmap[row][column] then {
+						if playfield.bitmap[row][column] == 0 then bitmap_diff.push([row, column, "b"]);
+						else  bitmap_diff.push([row, column, playfield.bitmap[row][column]]);
+					}
+				}
+			}
+
+
+			for var block in bitmap_diff do {
+				this.draw_block(block[0], block[1], block[2]);
+			}
+
+
+
+			this.p_bitmap = deepcopy(playfield.bitmap);
+			playfield.bitmap = bitmap_cache;
+
+
+			# draw next tetromino
+			var tetromino_bitmap = tetrominos[next_tetromino][0];
+			for var row in 0:tetromino_bitmap.size() do {
+				for var column in 0:tetromino_bitmap[row].size() do {
+					if tetromino_bitmap[row][column] != 0 then this.draw_block(row + 16, column + 12.5, tetromino_bitmap[row][column]);
+				}
+			}
+
+
+
+		}
+
+
+		# pos_x and pos_y are in units of blocks! Conversion to pixels happens internally.
+		function draw_block(pos_y, pos_x, color) {
 			pos_x = pos_x * block_size;
 			pos_y *= block_size;
 			
