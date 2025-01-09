@@ -61,5 +61,4 @@ class Playfield {
 
 		return full_rows.size();
 	}
-
 }

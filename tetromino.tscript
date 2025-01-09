@@ -1,21 +1,21 @@
 class Tetromino{
 	public:
-		var row = 0;
-		var column = 3;
-		var rotation = 0; 
+		var row = 1;
+		var column = 4;
+		var rotation = 0;
 		var shape;
 		var max_rotations;
 		var previous_state;
-		
+
 		constructor(shape_){
 			this.shape = shape_;
 			this.max_rotations = tetrominos[this.shape].size();
 		}
-		
+
 		function bitmap(){
 			return tetrominos[this.shape][this.rotation];
 		}
-		
+
 		function save_state(){
 			previous_state = {
 				"row": this.row,
@@ -23,35 +23,35 @@ class Tetromino{
 				"rotation": this.rotation
 			};
 		}
-		
+
 		function undo() {
 			this.row = previous_state["row"];
 			this.column = previous_state["column"];
 			this.rotation = previous_state["rotation"];
 		}
-		
+
 		function drop(){
 			save_state();
 			this.row += 1;
 		}
-		
+
 		function move_right() {
 			save_state();
 			this.column += 1;
 		}
-		
+
 		function move_left() {
 			save_state();
 			this.column -= 1;
 		}
-		
+
 		function rotate_right() {
 			save_state();
 			this.rotation = (this.rotation + 1) % this.max_rotations;
 		}
-		
+
 		function rotate_left() {
 			save_state();
 			this.rotation = (this.rotation - 1) % this.max_rotations;
-		}		
+		}
 }

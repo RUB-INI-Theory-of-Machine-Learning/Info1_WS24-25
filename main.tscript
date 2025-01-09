@@ -10,29 +10,28 @@ var pool = TetrominoPool();
 var tetromino = Tetromino(pool.get());
 var renderer = Renderer();
 
-
-var level = 5;
+var level = 9;
 var lines = 0;
 var score = 0;
-
 
 var gravity = level_gravity[level];
 var previous_time = localtime();
 var just_spawned = true;
 var soft_drop_locked = false;
+var collision_detected = false;
 
 setEventHandler("timer", function(event){
 	if localtime() - previous_time > gravity then {
 		previous_time = localtime();
 
 		# render the state so we can see changes
-		renderer.render(playfield, tetromino, pool.next());
+		renderer.render(playfield, tetromino, pool.next(), score, level, lines);
 
 	  	# change the y position of the block
 		tetromino.drop();
 
 		# check for collision, if true then undrop tetromino, insert and get new
-		if playfield.check_collision(tetromino) then {
+		if collision_detected and playfield.check_collision(tetromino) then {
 			if just_spawned then quitEventMode();
 			tetromino.undo();
 			playfield.insert_tetromino(tetromino);
@@ -42,7 +41,7 @@ setEventHandler("timer", function(event){
 				lines += cleared_rows;
 				score += base_score_values[cleared_rows] * (level + 1);
 				if level <= level_gravity.size() and level < lines // 10 then level = lines // 10;
-				gravity = level_gravity[level];
+
 			}
 
 			soft_drop_locked = true;
@@ -51,12 +50,15 @@ setEventHandler("timer", function(event){
 			tetromino = Tetromino(pool.get());
 			just_spawned = true;
 
-			print(lines);
-			print(score);
-			print(level);
+			collision_detected = false;
 		}
 		else { # no collision just after spawning
 			just_spawned = false;
+		}
+
+		if playfield.check_collision(tetromino) then {
+			collision_detected = true;
+			tetromino.undo();
 		}
 	}
 });
@@ -73,7 +75,7 @@ setEventHandler("canvas.keydown", function(event){
 	}
 
 	# render now, so we can see the rotated/moved tetromino instantly
-	renderer.render(playfield, tetromino, pool.next());
+	renderer.render(playfield, tetromino, pool.next(), score, level, lines);
 });
 
 setEventHandler("canvas.keyup", function(event){

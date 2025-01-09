@@ -5,6 +5,8 @@ class Renderer {
 		var p_bitmap = [];
 		var sidebar_size = 7;
 
+		var p_tetromino, p_score, p_level, p_lines;
+
 		constructor(){
 			# We define the block size
 			this.block_size = math.min(canvas.width() // 12 + this.sidebar_size, canvas.height() // 22);
@@ -17,12 +19,15 @@ class Renderer {
 			# init background
 			canvas.setFillColor(0,0,0);
 			canvas.clear();
+
+			canvas.setFont("MS Comic Sans", block_size);
+			this.draw_text( 12.5, 2, "Score");
+			this.draw_text( 12.5, 5, "Level");
+			this.draw_text( 12.5, 8, "Lines");
 		}
 
-		function render(playfield, tetromino, next_tetromino){
-
+		function render(playfield, tetromino, next_tetromino, score, level, lines){
 			var bitmap_diff = [];
-
 			var bitmap_cache = deepcopy(playfield.bitmap);
 
 			playfield.insert_tetromino(tetromino);
@@ -36,27 +41,54 @@ class Renderer {
 				}
 			}
 
-
 			for var block in bitmap_diff do {
 				this.draw_block(block[0], block[1], block[2]);
 			}
 
-
-
 			this.p_bitmap = deepcopy(playfield.bitmap);
 			playfield.bitmap = bitmap_cache;
 
-
 			# draw next tetromino
-			var tetromino_bitmap = tetrominos[next_tetromino][0];
-			for var row in 0:tetromino_bitmap.size() do {
-				for var column in 0:tetromino_bitmap[row].size() do {
-					if tetromino_bitmap[row][column] != 0 then this.draw_block(row + 16, column + 12.5, tetromino_bitmap[row][column]);
+			if next_tetromino != this.p_tetromino then {
+				this.draw_background(12.5, 16, 4, 4);
+				var tetromino_bitmap = tetrominos[next_tetromino][0];
+				for var row in 0:tetromino_bitmap.size() do {
+					for var column in 0:tetromino_bitmap[row].size() do {
+						if tetromino_bitmap[row][column] != 0 then this.draw_block(row + 16, column + 12.5, tetromino_bitmap[row][column]);
+					}
 				}
 			}
 
+			if p_score != score then {
+				this.draw_background(12.5, 3, 4, 1);
+				this.draw_text(12.5, 3, score);
+			}
 
+			if p_level != level then {
+				this.draw_background(12.5, 6, 4, 1);
+				this.draw_text(12.5, 6, level);
+			}
 
+			if p_lines != lines then {
+				this.draw_background(12.5, 9, 4, 1);
+				this.draw_text(12.5, 9, lines);
+			}
+		}
+
+		function draw_background(x,y,w,h){
+			# init background
+			canvas.setFillColor(0,0,0);
+			canvas.fillRect(
+				x * block_size,
+				y * block_size,
+				w * block_size,
+				h * block_size
+			);
+		}
+
+		function draw_text(x, y, text){
+			canvas.setFillColor(1,1,1);
+			canvas.text(x * block_size, y * block_size, text);
 		}
 
 
