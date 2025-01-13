@@ -1,0 +1,101 @@
+include "Assets";
+include "Tetromino";
+include "Playfield";
+include "Renderer";
+include "TetrominoPool";
+
+class Game {
+public:
+	# Initialize the necessary classes
+	var playfield;
+	var pool;
+	var tetromino;
+	var renderer;
+	var bindings;
+
+	var level = 9;
+	var lines = 0;
+	var score = 0;
+
+	var gravity;
+	var previous_time;
+	var just_spawned = true;
+	var soft_drop_locked = false;
+	var collision_detected = false;
+
+	constructor(v_canvas, bindings){
+		this.bindings = bindings;
+		this.playfield = Playfield(10,20);
+		this.pool = TetrominoPool();
+		this.tetromino = Tetromino(pool.get());
+		this.renderer = Renderer(v_canvas["x"],v_canvas["y"],v_canvas["width"],v_canvas["height"]);
+
+		this.gravity = level_gravity[level];
+		this.previous_time = localtime();
+	}
+
+	function timer(){
+		if localtime() - previous_time > gravity then {
+			previous_time = localtime();
+
+			# render the state so we can see changes
+			renderer.render(playfield, tetromino, pool.next(), score, level, lines);
+
+		  	# change the y position of the block
+			tetromino.drop();
+
+			# check for collision, if true then undrop tetromino, insert and get new
+			if collision_detected and playfield.check_collision(tetromino) then {
+				if just_spawned then quitEventMode();
+				tetromino.undo();
+				playfield.insert_tetromino(tetromino);
+
+				var cleared_rows = playfield.remove_full_rows(tetromino.row);
+				if cleared_rows > 0 then {
+					lines += cleared_rows;
+					score += base_score_values[cleared_rows] * (level + 1);
+					if level <= level_gravity.size() and level < lines // 10 then level = lines // 10;
+
+				}
+
+				soft_drop_locked = true;
+				gravity = level_gravity[level];
+
+				tetromino = Tetromino(pool.get());
+				just_spawned = true;
+
+				collision_detected = false;
+			}
+			else { # no collision just after spawning
+				just_spawned = false;
+			}
+
+			if playfield.check_collision(tetromino) then {
+				collision_detected = true;
+				tetromino.undo();
+			}
+		}
+	}
+
+	function keydown(event){
+		if event.key == this.bindings["move_right"] then tetromino.move_right();
+		if event.key == this.bindings["move_left"] then tetromino.move_left();
+		if event.key == this.bindings["rotate_right"] then tetromino.rotate_right();
+		if event.key == this.bindings["rotate_left"] then tetromino.rotate_left();
+		if event.key == this.bindings["soft_drop"] and not soft_drop_locked then gravity = 50;
+
+		if playfield.check_collision(tetromino) then {
+			tetromino.undo();
+		}
+
+		# render now, so we can see the rotated/moved tetromino instantly
+		renderer.render(playfield, tetromino, pool.next(), score, level, lines);
+	}
+
+	function keyup(event){
+		if event.key == this.bindings["soft_drop"] then {
+			soft_drop_locked = false;
+			gravity = level_gravity[level];
+		}
+	}
+}

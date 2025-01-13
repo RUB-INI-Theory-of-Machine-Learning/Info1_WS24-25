@@ -10,6 +10,7 @@ class Tetromino{
 		constructor(shape_){
 			this.shape = shape_;
 			this.max_rotations = tetrominos[this.shape].size();
+			this.save_state();
 		}
 
 		function bitmap(){

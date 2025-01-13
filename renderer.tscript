@@ -1,5 +1,6 @@
 class Renderer {
 	public:
+		var x, y;
 		var block_size = 0;
 		var outline_size = 0;
 		var p_bitmap = [];
@@ -7,9 +8,12 @@ class Renderer {
 
 		var p_tetromino, p_score, p_level, p_lines;
 
-		constructor(){
+		constructor(x,y,width,height){
+			this.x = x;
+			this.y = y;
+
 			# We define the block size
-			this.block_size = math.min(canvas.width() // 12 + this.sidebar_size, canvas.height() // 22);
+			this.block_size = math.min(width // 12 + this.sidebar_size, height // 22);
 
 			# We define the outline to be 1/10 of the block size
 			this.outline_size = this.block_size/10;
@@ -18,7 +22,7 @@ class Renderer {
 
 			# init background
 			canvas.setFillColor(0,0,0);
-			canvas.clear();
+			canvas.fillRect(this.x, this.y, width, height);
 
 			canvas.setFont("MS Comic Sans", block_size);
 			this.draw_text( 12.5, 2, "Score");
@@ -79,8 +83,8 @@ class Renderer {
 			# init background
 			canvas.setFillColor(0,0,0);
 			canvas.fillRect(
-				x * block_size,
-				y * block_size,
+				this.x + x * block_size,
+				this.y +y * block_size,
 				w * block_size,
 				h * block_size
 			);
@@ -88,14 +92,14 @@ class Renderer {
 
 		function draw_text(x, y, text){
 			canvas.setFillColor(1,1,1);
-			canvas.text(x * block_size, y * block_size, text);
+			canvas.text(this.x + x * block_size, this.y + y * block_size, text);
 		}
 
 
 		# pos_x and pos_y are in units of blocks! Conversion to pixels happens internally.
 		function draw_block(pos_y, pos_x, color) {
-			pos_x = pos_x * block_size;
-			pos_y *= block_size;
+			pos_x = this.x + pos_x * block_size;
+			pos_y = this.y + pos_y * block_size;
 			
 			# draw the block
 			canvas.setFillColor(colors[color]["light"][0]/255, 
