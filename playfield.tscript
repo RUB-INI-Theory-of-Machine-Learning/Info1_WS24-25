@@ -61,6 +61,7 @@ class Playfield {
 
 		return full_rows.size();
 	}
+	
 	function insert_garbage(num){
 		var gap = Integer((math.random() * 10));
 
@@ -72,7 +73,7 @@ class Playfield {
 
 		for var row in 0:num do {
 			# insert line into playfield and remove top line of playfield
-			this.bitmap.insert(20, deepcopy(line));
+			this.bitmap.insert(21, deepcopy(line));
 			this.bitmap.remove(1);
 		}
 	}

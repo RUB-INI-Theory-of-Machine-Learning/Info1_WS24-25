@@ -1,4 +1,5 @@
 include "Game";
+include "Bot";
 
 var player_1 = {
 	v_canvas: {
@@ -35,11 +36,17 @@ var player_2 = {
 
 var games = [
 	Game(player_1["v_canvas"], player_1["bindings"]),
-	Game(player_2["v_canvas"], player_2["bindings"]),
+	Bot(Game(player_2["v_canvas"], player_2["bindings"])),
 ];
 
 setEventHandler("timer", function(event){
-	for var game in games do game.timer();
+	for var game_idx in 0:games.size() do {
+		if games.size() > 1 then {
+			games[(game_idx+1)%games.size()].add_incoming_lines(games[game_idx].get_outgoing_lines()); 
+			games[game_idx].reset_outgoing_lines();
+		}
+		games[game_idx].timer();
+	}
 });
 
 setEventHandler("canvas.keydown", function(event){

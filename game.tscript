@@ -12,6 +12,9 @@ public:
 	var tetromino;
 	var renderer;
 	var bindings;
+	
+	var incoming_lines = 0;
+	var outgoing_lines = 0;
 
 	var level = 9;
 	var lines = 0;
@@ -49,13 +52,20 @@ public:
 				if just_spawned then quitEventMode();
 				tetromino.undo();
 				playfield.insert_tetromino(tetromino);
+				
+				if this.incoming_lines > 0 then {
+					playfield.insert_garbage(this.incoming_lines);
+					this.incoming_lines = 0;
+				}
 
 				var cleared_rows = playfield.remove_full_rows(tetromino.row);
 				if cleared_rows > 0 then {
 					lines += cleared_rows;
 					score += base_score_values[cleared_rows] * (level + 1);
 					if level <= level_gravity.size() and level < lines // 10 then level = lines // 10;
-
+					
+					if cleared_rows < 4 then this.outgoing_lines += cleared_rows-1;
+					else this.outgoing_lines += 4;
 				}
 
 				soft_drop_locked = true;
@@ -75,6 +85,18 @@ public:
 				tetromino.undo();
 			}
 		}
+	}
+	
+	function add_incoming_lines(num){
+		this.incoming_lines += num;
+	}
+	
+	function get_outgoing_lines(){
+		return this.outgoing_lines;
+	}
+	
+	function reset_outgoing_lines(){
+		this.outgoing_lines = 0;
 	}
 
 	function keydown(event){

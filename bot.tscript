@@ -1,0 +1,69 @@
+class Event {
+public:
+	var key;
+	
+	constructor(key){
+		this.key = key;
+	}
+}
+
+class Bot {
+public: 
+	var game;
+	var target_position = {"column": 8, "rotation": 1};
+	var speed = 1000;
+	
+	var previous_time;
+
+	constructor(game){
+		this.game = game;
+		this.previous_time = localtime();
+	}
+	
+	function timer(){
+		if this.game.just_spawned then this.get_position();
+	
+		if localtime() - previous_time > speed then {
+			this.previous_time = localtime();
+			
+		
+			
+			if this.target_position["rotation"] == this.game.tetromino.rotation then {
+				if this.target_position["column"] < this.game.tetromino.column then 
+					this.game.keydown(Event(this.game.bindings["move_left"]));
+				if this.target_position["column"] > this.game.tetromino.column then 
+					this.game.keydown(Event(this.game.bindings["move_right"]));
+			}
+			else {
+				if this.target_position["rotation"] < this.game.tetromino.rotation then 
+					this.game.keydown(Event(this.game.bindings["rotate_left"]));
+				if this.target_position["rotation"] > this.game.tetromino.rotation then 
+					this.game.keydown(Event(this.game.bindings["rotate_right"]));
+			}
+				
+			
+			
+		}
+		this.game.timer();
+	}
+	
+	function get_position(){
+		this.target_position["rotation"] = Integer((math.random() * this.game.tetromino.max_rotations));
+		this.target_position["column"] = Integer((math.random() * 7));
+	}
+	
+	function add_incoming_lines(num){
+		this.game.add_incoming_lines(num);
+	}
+	
+	function get_outgoing_lines(){
+		return this.game.get_outgoing_lines();
+	}
+	
+	function reset_outgoing_lines(){
+		this.game.reset_outgoing_lines();
+	}
+	
+	function keydown(e){}
+	function keyup(e){}
+}
