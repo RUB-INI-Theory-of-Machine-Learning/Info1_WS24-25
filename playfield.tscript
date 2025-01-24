@@ -24,6 +24,8 @@ class Playfield {
 			for var row in 0:tetromino.bitmap().size() do {
 				for var column in 0:tetromino.bitmap()[row].size() do {
 					if tetromino.bitmap()[row][column] != 0 then {
+						if row + tetromino.row > this.bitmap.size() - 1 then return true;
+						if column + tetromino.column > this.bitmap[0].size() - 1 then return true;
 						if this.bitmap[row + tetromino.row][column + tetromino.column] != 0 then return true;
 					}
 				}
