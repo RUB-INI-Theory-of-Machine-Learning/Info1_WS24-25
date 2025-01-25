@@ -11,7 +11,7 @@ class Bot {
 public: 
 	var game;
 	var target_position = {"column": 8, "rotation": 1};
-	var speed = 1000;
+	var speed = 100;
 	
 	var previous_time;
 
@@ -21,13 +21,12 @@ public:
 	}
 	
 	function timer(){
-		if this.game.just_spawned then this.get_position();
+		if this.game.just_spawned then target_position = this.calculate_optimal_position();
 	
 		if localtime() - previous_time > speed then {
 			this.previous_time = localtime();
 			
-		
-			
+			# move and rotate tetromino to target position
 			if this.target_position["rotation"] == this.game.tetromino.rotation then {
 				if this.target_position["column"] < this.game.tetromino.column then 
 					this.game.keydown(Event(this.game.bindings["move_left"]));
@@ -40,16 +39,104 @@ public:
 				if this.target_position["rotation"] > this.game.tetromino.rotation then 
 					this.game.keydown(Event(this.game.bindings["rotate_right"]));
 			}
-				
-			
-			
 		}
 		this.game.timer();
 	}
 	
-	function get_position(){
-		this.target_position["rotation"] = Integer((math.random() * this.game.tetromino.max_rotations));
-		this.target_position["column"] = Integer((math.random() * 7));
+	function calculate_optimal_position() {
+		# make a copy of the tetromino and the playfield so we can play with it without destroying the game state
+		var tetromino = this.game.tetromino.copy();
+		var playfield = Playfield(this.game.playfield.bitmap.size(), this.game.playfield.bitmap[0].size());
+		
+		var valid_positions = [];
+		
+		# try all rotations and positions for the tetromino and drop it until it collides
+		for var rot in 0:tetromino.max_rotations do {
+			for var col in 0:playfield.bitmap[0].size() do {
+				playfield.bitmap = deepcopy(this.game.playfield.bitmap);
+				
+				tetromino.column = col;
+				tetromino.rotation = rot;
+				
+				if playfield.check_collision(tetromino) then continue;
+				
+				while not playfield.check_collision(tetromino) do {
+					tetromino.row += 1;
+				}
+				tetromino.row -= 1;
+				
+				# Now rate the new state
+				playfield.insert_tetromino(tetromino);
+				playfield.remove_full_rows(tetromino.row);
+				var score = this.score(playfield);
+				
+				valid_positions.push({"column": col,
+									  "rotation": rot,
+									  "score": score});
+			}
+		}
+		
+		# find position with the best score and return it
+		var optimal_position = valid_positions[0];
+		for var pos in valid_positions do {
+			if optimal_position["score"] < pos["score"] then optimal_position = pos;
+		}
+		return optimal_position;
+	}
+	
+	function score(playfield) {
+		var weights = { "height": 1,
+						"holes": 2,
+						"roughness": 1 };
+						
+		return -1 * (weights["height"] * max_height(playfield) + 
+		             weights["holes"]  * holes(playfield) + 
+		             weights["roughness"] * roughness(playfield));
+	}
+	
+	# find the height of the highest block
+	# possible TODOs: 
+	# 	- make 3 zones and rate them differently, so a tiny height change does not necessarily change the height score
+	# 	- reuse the code from the roughness. We only need to find the maximum element of the heights-Array
+	function max_height(playfield) {
+		for var row in 1:playfield.bitmap.size() - 2 do {
+			for var col in 1:playfield.bitmap[row].size() - 2 do {
+				if playfield.bitmap[row][col] != 0 then return playfield.bitmap.size() - 1 - row;
+			}
+		}	
+		return 0;
+	}
+	
+	# count all the holes
+	function holes(playfield) {
+		var holes = 0;
+		for var col_idx in 1:playfield.bitmap[0].size() - 1 do {
+			var flag = false;
+			for var row_idx in 1:playfield.bitmap.size() - 1 do {
+				if playfield.bitmap[row_idx][col_idx] != 0 then flag = true;
+				if playfield.bitmap[row_idx][col_idx] == 0 and flag then holes += 1;
+			}
+		}	
+		return holes;
+	}
+	
+	# calculate how rough/bumpy the surface is
+	function roughness(playfield) {
+		var heights = [];
+		for var col_idx in 1:playfield.bitmap[0].size() - 1 do {
+			for var row_idx in 1:playfield.bitmap.size() - 1 do {
+				if playfield.bitmap[row_idx][col_idx] != 0 then {
+					heights.push(row_idx);
+					break;
+				}
+			}
+		}
+		
+		var score = 0;
+		for var i in 0:heights.size() - 1 do {
+			score += math.abs(heights[i] - heights[i + 1]);
+		}
+		return score;		
 	}
 	
 	function add_incoming_lines(num){

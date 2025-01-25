@@ -12,6 +12,13 @@ class Tetromino{
 			this.max_rotations = tetrominos[this.shape].size();
 			this.save_state();
 		}
+		
+		function copy() {
+			var t = Tetromino(this.shape);
+			t.row = this.row;
+			t.column = this.column;
+			return t;
+		}
 
 		function bitmap(){
 			return tetrominos[this.shape][this.rotation];
